@@ -64,7 +64,7 @@ class MediaController extends Controller
         $user = auth()->user();
 
         $media = DB::table('media')
-            ->whereIn('user_id', [$user->id, $user->partner_id])
+            ->where('user_id', $user->id)
             ->select('name', 'folder', 'height', 'width')
             ->groupBy('name', 'folder', 'height', 'width')
             ->get();

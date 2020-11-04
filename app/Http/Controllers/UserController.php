@@ -20,7 +20,7 @@ class UserController extends Controller
 
             $userData = DB::table('users')
                 ->where('email', $request->email)
-                ->select('id', 'name', 'email', 'partner_id', 'api_token')
+                ->select('id', 'name', 'email', 'api_token')
                 ->get();
 
             $user = $userData[0];
