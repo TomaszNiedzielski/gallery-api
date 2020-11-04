@@ -10,9 +10,13 @@ class MediaController extends Controller
 {
     public function create(Request $request) {
 
-        // $this->validate($request, [
-        //     'photo' => 'image',
-        // ]);
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|mimes:png,jpg,mp4'
+        ]);
+
+        if($validator->fails()){
+            return response()->json($validator->errors(), 400);
+        }
 
         if ($request->hasFile('media')) {
         
@@ -104,6 +108,15 @@ class MediaController extends Controller
     }
 
     public function delete(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'selectedMediaNames' => 'required|array|min:1',
+            'selectedMediaNames.*' => 'required|string|distinct'
+        ]);
+
+        if($validator->fails()){
+            return response()->json($validator->errors(), 400);
+        }
+
         DB::table('media')
             ->where('user_id', '=', auth()->user()->id)
             ->whereIn('name', $request->selectedMediaNames)
