@@ -45,6 +45,8 @@ class MediaController extends Controller
             $media->type = $fileType;
             $media->name = $fileNameToStore;
             $media->folder = $request->folderName;
+            $media->height = $request->height;
+            $media->width = $request->width;
             $media->save();
 
             return response()->json(200);
@@ -59,8 +61,8 @@ class MediaController extends Controller
 
         $media = DB::table('media')
             ->whereIn('user_id', [$user->id, $user->partner_id])
-            ->select('name', 'folder')
-            ->groupBy('name', 'folder')
+            ->select('name', 'folder', 'height', 'width')
+            ->groupBy('name', 'folder', 'height', 'width')
             ->get();
         
         // extract folder names
@@ -88,6 +90,8 @@ class MediaController extends Controller
                 if($mediaItem->folder == $folderName) {
                     $mediaData = new \stdClass();
                     $mediaData->path = $pathToMedia.$mediaItem->name;
+                    $mediaData->height = $mediaItem->height;
+                    $mediaData->width = $mediaItem->width;
                     array_push($folder->media, $mediaData);
                 }
             }
