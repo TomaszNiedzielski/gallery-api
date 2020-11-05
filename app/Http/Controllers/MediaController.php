@@ -12,7 +12,7 @@ class MediaController extends Controller
     public function create(Request $request) {
 
         $validator = Validator::make($request->all(), [
-            'name' => 'required|mimes:png,jpg,mp4'
+            'media' => 'required|mimes:png,jpg,mp4'
         ]);
 
         if($validator->fails()){
