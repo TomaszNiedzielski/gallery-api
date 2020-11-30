@@ -5,13 +5,25 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use DB;
 use App\Media;
+use Illuminate\Support\Facades\Validator;
 
 class MediaController extends Controller
 {
+     
+    // path to media on server
+    private string $IP;
+    private string $PATH_TO_MEDIA;
+
+    public function __construct()
+    {
+        $this->IP = '10.33.20.146';
+        $this->PATH_TO_MEDIA = 'http://'.$this->IP.':8000/storage/gallery/';
+    }
+
     public function create(Request $request) {
 
         $validator = Validator::make($request->all(), [
-            'name' => 'required|mimes:png,jpg,mp4'
+            'media' => 'required|mimes:png,jpg,jpeg,mp4'
         ]);
 
         if($validator->fails()){
@@ -35,7 +47,7 @@ class MediaController extends Controller
             // Upload Image
             $path = $request->file('media')->storeAs('public/gallery', $fileNameToStore);
         }
-        
+
         if(isset($fileNameToStore)) {
 
             if($extension == 'png' || $extension == 'jpg') {
@@ -53,7 +65,10 @@ class MediaController extends Controller
             $media->width = $request->width;
             $media->save();
 
-            return response()->json(200);
+            $mediaItemPath = $this->PATH_TO_MEDIA.$fileNameToStore;
+            $media->path = $mediaItemPath;
+
+            return response()->json(array('mediaItem' => $media), 200);
         } else {
             return response()->json(500);
         }
@@ -64,9 +79,14 @@ class MediaController extends Controller
         $user = auth()->user();
 
         $media = DB::table('media')
+            ->whereIn('user_id', [$user->id, $user->partner_id])
+            ->select('type', 'name', 'folder', 'height', 'width')
+            ->groupBy('type', 'name', 'folder', 'height', 'width')
+            ->orderBy('created_at', 'desc')
             ->where('user_id', $user->id)
             ->select('name', 'folder', 'height', 'width')
             ->groupBy('name', 'folder', 'height', 'width')
+
             ->get();
         
         // extract folder names
@@ -85,15 +105,12 @@ class MediaController extends Controller
             $folder->name = $folderName;
             $folder->media = [];
 
-            // path to media on server
-            $ip = '10.33.20.146';
-            $pathToMedia = 'http://'.$ip.':8000/storage/gallery/';
-
             // push matching media item
             foreach($media as $mediaItem) {
                 if($mediaItem->folder == $folderName) {
                     $mediaData = new \stdClass();
-                    $mediaData->path = $pathToMedia.$mediaItem->name;
+                    $mediaData->path = $this->PATH_TO_MEDIA.$mediaItem->name;
+                    $mediaData->type = $mediaItem->type;
                     $mediaData->height = $mediaItem->height;
                     $mediaData->width = $mediaItem->width;
                     array_push($folder->media, $mediaData);
