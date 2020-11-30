@@ -83,6 +83,10 @@ class MediaController extends Controller
             ->select('type', 'name', 'folder', 'height', 'width')
             ->groupBy('type', 'name', 'folder', 'height', 'width')
             ->orderBy('created_at', 'desc')
+            ->where('user_id', $user->id)
+            ->select('name', 'folder', 'height', 'width')
+            ->groupBy('name', 'folder', 'height', 'width')
+
             ->get();
         
         // extract folder names
